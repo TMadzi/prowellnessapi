@@ -2,23 +2,22 @@
 # BUILD FOR LOCAL DEVELOPMENT
 ###################
 
-FROM node:18-alpine As development
+# Update to node:18 instead of node:18-alpine
+FROM node:18 As development
 
-# Create app directory
+# Required for Prisma Client to work in container
+RUN apt-get update && apt-get install -y openssl
+
 WORKDIR /usr/src/app
 
-# Copy application dependency manifests to the container image.
-# A wildcard is used to ensure copying both package.json AND package-lock.json (when available).
-# Copying this first prevents re-running npm install on every code change.
 COPY --chown=node:node package*.json ./
 
-# Install app dependencies using the `npm ci` command instead of `npm install`
 RUN npm ci
 
-# Bundle app source
 COPY --chown=node:node . .
 
-# Use the node user from the image (instead of the root user)
+RUN npx prisma generate
+
 USER node
 
 ###################
